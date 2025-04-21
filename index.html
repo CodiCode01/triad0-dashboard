@@ -1,42 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>TRIAD:Ø LIVE DASHBOARD</title>
-    <style>
-        body { background-color: #0e0e0e; color: #00ff99; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 40px; }
-        h1 { font-size: 2em; margin-bottom: 20px; }
-        .box { border: 1px solid #00ff99; border-radius: 8px; padding: 20px; margin: 10px; width: 350px; }
-        .label { color: #999; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GENØ:LIVE</title>
+  <style>
+    body {
+      background-color: #0e0e0e;
+      font-family: monospace;
+      color: #00ff99;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      animation: pulse 1.5s infinite alternate;
+    }
+    .pulse-box {
+      border: 1px solid #00ff99;
+      padding: 20px;
+      margin: 10px auto;
+      max-width: 400px;
+      border-radius: 10px;
+      background-color: #101010;
+      box-shadow: 0 0 10px #00ff99;
+    }
+    .label {
+      color: #999;
+      font-size: 0.9em;
+    }
+    .value {
+      font-size: 1.2em;
+      margin: 5px 0;
+    }
+    .error {
+      border: 1px solid #ff0066;
+      color: #ff0066;
+    }
+    @keyframes pulse {
+      0% { color: #00ff99; }
+      100% { color: #00ffaa; text-shadow: 0 0 5px #00ffaa; }
+    }
+  </style>
 </head>
 <body>
-    <h1>TRIAD:Ø LIVE DASHBOARD</h1>
-    <div id="dashboard" class="box">Lade Daten…</div>
+  <h1>GENØ:LIVE DASHBOARD</h1>
+  <div id="dashboard" class="pulse-box">Daten werden geladen...</div>
 
-    <script>
-        fetch('triad_dashboard_live.json')
-            .then(response => response.json())
-            .then(data => {
-                const box = document.getElementById('dashboard');
-                box.innerHTML = `
-                    <p><span class="label">Systemstatus:</span> <strong>${data.status}</strong></p>
-                    <p><span class="label">Gesamtkapital:</span> ${data.capital_total}</p>
-                    <p><span class="label">Verwendetes Kapital:</span> ${data.capital_used}</p>
-                    <p><span class="label">ETH/USDT Kurs:</span> ${data.eth_usdt_price}</p>
-                    <p><span class="label">Entry-Status:</span> ${data.entry_status}</p>
-                    <hr>
-                    <h3>Wallet:</h3>
-                    ${data.wallet_assets.map(asset => `<p>${asset.asset}: ${asset.balance}</p>`).join('')}
-                    <hr>
-                    <h3>Letzte Trades:</h3>
-                    ${data.last_trades.map(trade => `<p>${trade.pair} – ${trade.action} – ${trade.status}</p>`).join('')}
-                `;
-            })
-            .catch(error => {
-                document.getElementById('dashboard').innerHTML = 'Fehler beim Laden der Daten.';
-            });
-    </script>
+  <script>
+    async function fetchData() {
+      try {
+        const res = await fetch('triad_dashboard_live.json');
+        if (!res.ok) throw new Error('Fetch failed');
+        const data = await res.json();
+        renderDashboard(data);
+      } catch (err) {
+        document.getElementById('dashboard').innerHTML =
+          '<div class="pulse-box error">Fehler beim Laden der Daten.</div>';
+      }
+    }
+
+    function renderDashboard(data) {
+      const total = data.capital_total;
+      const used = data.capital_used;
+      const free = parseFloat(total) - parseFloat(used);
+      let html = `
+        <div class="label">Status</div>
+        <div class="value">${data.status}</div>
+        <div class="label">Kapital (gesamt)</div>
+        <div class="value">${total}</div>
+        <div class="label">Eingesetzt</div>
+        <div class="value">${used}</div>
+        <div class="label">Frei</div>
+        <div class="value">${free.toFixed(2)} USDT</div>
+        <hr>
+        <div class="label">Assets</div>`;
+
+      data.wallet_assets.forEach(asset => {
+        html += `<div class="value">${asset.asset}: ${asset.balance}</div>`;
+      });
+
+      if (data.last_trades) {
+        html += `<hr><div class="label">Letzte Trades</div>`;
+        data.last_trades.slice(0,3).forEach(trade => {
+          html += `<div class="value">${trade.pair} – ${trade.price} (${trade.direction})</div>`;
+        });
+      }
+
+      document.getElementById('dashboard').innerHTML = html;
+    }
+
+    fetchData();
+    setInterval(fetchData, 15000);
+  </script>
 </body>
 </html>
