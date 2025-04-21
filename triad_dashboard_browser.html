@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TRIAD:Ø LIVE DASHBOARD</title>
+    <style>
+        body { background-color: #0e0e0e; color: #00ff99; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        h1 { font-size: 2em; margin-bottom: 20px; }
+        .box { border: 1px solid #00ff99; border-radius: 8px; padding: 20px; margin: 10px; width: 350px; }
+        .label { color: #999; }
+    </style>
+</head>
+<body>
+    <h1>TRIAD:Ø LIVE DASHBOARD</h1>
+    <div id="dashboard" class="box">Lade Daten…</div>
+
+    <script>
+        fetch('triad_dashboard_live.json')
+            .then(response => response.json())
+            .then(data => {
+                const box = document.getElementById('dashboard');
+                box.innerHTML = `
+                    <p><span class="label">Systemstatus:</span> <strong>${data.status}</strong></p>
+                    <p><span class="label">Gesamtkapital:</span> ${data.capital_total}</p>
+                    <p><span class="label">Verwendetes Kapital:</span> ${data.capital_used}</p>
+                    <p><span class="label">ETH/USDT Kurs:</span> ${data.eth_usdt_price}</p>
+                    <p><span class="label">Entry-Status:</span> ${data.entry_status}</p>
+                    <hr>
+                    <h3>Wallet:</h3>
+                    ${data.wallet_assets.map(asset => `<p>${asset.asset}: ${asset.balance}</p>`).join('')}
+                    <hr>
+                    <h3>Letzte Trades:</h3>
+                    ${data.last_trades.map(trade => `<p>${trade.pair} – ${trade.action} – ${trade.status}</p>`).join('')}
+                `;
+            })
+            .catch(error => {
+                document.getElementById('dashboard').innerHTML = 'Fehler beim Laden der Daten.';
+            });
+    </script>
+</body>
+</html>

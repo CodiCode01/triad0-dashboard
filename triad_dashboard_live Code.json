@@ -1,0 +1,35 @@
+{
+    "status": "AKTIV",
+    "capital_total": "69.90 USDT",
+    "capital_used": "0 USDT",
+    "wallet_assets": [
+        {
+            "asset": "USDT",
+            "balance": "69.90"
+        },
+        {
+            "asset": "ETH",
+            "balance": "0.0000"
+        },
+        {
+            "asset": "BTC",
+            "balance": "0.0000"
+        }
+    ],
+    "last_trades": [
+        {
+            "pair": "ETH/USDT",
+            "action": "WAITING",
+            "price": "3174.50",
+            "status": "Signal-\u00dcberwachung"
+        },
+        {
+            "pair": "ARB/USDT",
+            "action": "-",
+            "price": "-",
+            "status": "Inaktiv"
+        }
+    ],
+    "entry_status": "WARTET AUF SIGNAL",
+    "eth_usdt_price": "3174.50"
+}
