@@ -3,97 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GENØ:LIVE</title>
+  <title>TRIAD:Ø NOVA DASHBOARD</title>
   <style>
     body {
-      background-color: #0e0e0e;
-      font-family: monospace;
-      color: #00ff99;
       margin: 0;
-      padding: 20px;
-      text-align: center;
+      font-family: monospace;
+      background-color: #0a0a0a;
+      color: #00ff99;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      animation: pulse 2s infinite alternate;
+    }
+    @keyframes pulse {
+      from { background-color: #0a0a0a; }
+      to   { background-color: #000000; }
     }
     h1 {
-      font-size: 1.8em;
+      font-size: 2.5em;
+      text-shadow: 0 0 10px #00ff99;
       margin-bottom: 20px;
-      animation: pulse 1.5s infinite alternate;
     }
-    .pulse-box {
+    .box {
       border: 1px solid #00ff99;
       padding: 20px;
-      margin: 10px auto;
-      max-width: 400px;
-      border-radius: 10px;
-      background-color: #101010;
-      box-shadow: 0 0 10px #00ff99;
+      border-radius: 8px;
+      min-width: 280px;
+      max-width: 90%;
+      text-align: center;
+      background-color: #111;
+      box-shadow: 0 0 12px #00ff99;
+      transition: all 0.5s ease-in-out;
+    }
+    .error {
+      color: #ff3c3c;
+      font-weight: bold;
     }
     .label {
       color: #999;
       font-size: 0.9em;
     }
-    .value {
-      font-size: 1.2em;
-      margin: 5px 0;
-    }
-    .error {
-      border: 1px solid #ff0066;
-      color: #ff0066;
-    }
-    @keyframes pulse {
-      0% { color: #00ff99; }
-      100% { color: #00ffaa; text-shadow: 0 0 5px #00ffaa; }
-    }
   </style>
 </head>
 <body>
-  <h1>GENØ:LIVE DASHBOARD</h1>
-  <div id="dashboard" class="pulse-box">Daten werden geladen...</div>
+  <h1>TRIAD:Ø NOVA DASHBOARD</h1>
+  <div id="dashboard" class="box">Lade Daten...</div>
+  <audio id="sound" src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" preload="auto"></audio>
 
   <script>
-    async function fetchData() {
-      try {
-        const res = await fetch('triad_dashboard_live.json');
-        if (!res.ok) throw new Error('Fetch failed');
-        const data = await res.json();
-        renderDashboard(data);
-      } catch (err) {
-        document.getElementById('dashboard').innerHTML =
-          '<div class="pulse-box error">Fehler beim Laden der Daten.</div>';
-      }
-    }
+    const dashboard = document.getElementById("dashboard");
+    const sound = document.getElementById("sound");
 
-    function renderDashboard(data) {
-      const total = data.capital_total;
-      const used = data.capital_used;
-      const free = parseFloat(total) - parseFloat(used);
-      let html = `
-        <div class="label">Status</div>
-        <div class="value">${data.status}</div>
-        <div class="label">Kapital (gesamt)</div>
-        <div class="value">${total}</div>
-        <div class="label">Eingesetzt</div>
-        <div class="value">${used}</div>
-        <div class="label">Frei</div>
-        <div class="value">${free.toFixed(2)} USDT</div>
-        <hr>
-        <div class="label">Assets</div>`;
-
-      data.wallet_assets.forEach(asset => {
-        html += `<div class="value">${asset.asset}: ${asset.balance}</div>`;
+    fetch('triad_dashboard_live.json')
+      .then(response => response.json())
+      .then(data => {
+        sound.play().catch(() => {});
+        dashboard.innerHTML = `
+          <div><span class="label">Status:</span> ${data.status}</div>
+          <div><span class="label">Gesamt:</span> ${data.capital_total}</div>
+          <div><span class="label">Genutzt:</span> ${data.capital_used}</div>
+          <br/>
+          <div><strong>Assets:</strong></div>
+          ${data.wallet_assets.map(a => `${a.asset}: ${a.balance}`).join('<br/>')}
+          <br/>
+          <div><strong>Letzte Trades:</strong></div>
+          ${data.last_trades.map(t => `${t.pair} – ${t.price} (${t.result})`).join('<br/>')}
+        `;
+      })
+      .catch(err => {
+        dashboard.innerHTML = `<div class="error">Fehler beim Laden der Daten.</div>`;
       });
-
-      if (data.last_trades) {
-        html += `<hr><div class="label">Letzte Trades</div>`;
-        data.last_trades.slice(0,3).forEach(trade => {
-          html += `<div class="value">${trade.pair} – ${trade.price} (${trade.direction})</div>`;
-        });
-      }
-
-      document.getElementById('dashboard').innerHTML = html;
-    }
-
-    fetchData();
-    setInterval(fetchData, 15000);
   </script>
 </body>
 </html>
