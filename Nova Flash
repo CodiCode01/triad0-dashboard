@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TRIAD:Ø NOVA DASHBOARD</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: monospace;
+      background-color: #0a0a0a;
+      color: #00ff99;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      animation: pulse 2s infinite alternate;
+    }
+    @keyframes pulse {
+      from { background-color: #0a0a0a; }
+      to   { background-color: #000000; }
+    }
+    h1 {
+      font-size: 2.5em;
+      text-shadow: 0 0 10px #00ff99;
+      margin-bottom: 20px;
+    }
+    .box {
+      border: 1px solid #00ff99;
+      padding: 20px;
+      border-radius: 8px;
+      min-width: 280px;
+      max-width: 90%;
+      text-align: center;
+      background-color: #111;
+      box-shadow: 0 0 12px #00ff99;
+      transition: all 0.5s ease-in-out;
+    }
+    .error {
+      color: #ff3c3c;
+      font-weight: bold;
+    }
+    .label {
+      color: #999;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>TRIAD:Ø NOVA DASHBOARD</h1>
+  <div id="dashboard" class="box">Lade Daten...</div>
+  <audio id="sound" src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" preload="auto"></audio>
+
+  <script>
+    const dashboard = document.getElementById("dashboard");
+    const sound = document.getElementById("sound");
+
+    fetch('triad_dashboard_live.json')
+      .then(response => response.json())
+      .then(data => {
+        sound.play().catch(() => {});
+        dashboard.innerHTML = `
+          <div><span class="label">Status:</span> ${data.status}</div>
+          <div><span class="label">Gesamt:</span> ${data.capital_total}</div>
+          <div><span class="label">Genutzt:</span> ${data.capital_used}</div>
+          <br/>
+          <div><strong>Assets:</strong></div>
+          ${data.wallet_assets.map(a => `${a.asset}: ${a.balance}`).join('<br/>')}
+          <br/>
+          <div><strong>Letzte Trades:</strong></div>
+          ${data.last_trades.map(t => `${t.pair} – ${t.price} (${t.result})`).join('<br/>')}
+        `;
+      })
+      .catch(err => {
+        dashboard.innerHTML = `<div class="error">Fehler beim Laden der Daten.</div>`;
+      });
+  </script>
+</body>
+</html>
